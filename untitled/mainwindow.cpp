@@ -11,17 +11,44 @@
 #include <QTextCodec>
 #include "httpqq.h"
 #include "threadmy.h"
+#include <QAxObject>
+
+#include <QStandardPaths>
+#include <QFileDialog>
+
 
 // QTableView *MainWindow::view = new QTableView;
+extern QStandardItemModel* model;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-//    ui->setupUi(this);
+    //读取Excel表格
+    QAxObject excel("Excel.Application");
+    excel.setProperty("Visible", false); //隐藏打开的excel文件界面
+    QAxObject *workbooks = excel.querySubObject("WorkBooks");
+    QAxObject *workbook = workbooks->querySubObject("Open(QString, QVariant)", "d:\\stock1.xlsx"); //打开文件
+    QAxObject * worksheet = workbook->querySubObject("WorkSheets(int)", 1); //访问第一个工作表
+    QAxObject * usedrange = worksheet->querySubObject("UsedRange");
+    QAxObject * rows = usedrange->querySubObject("Rows");
+    int intRows = rows->property("Count").toInt(); //行数
+
+    QString Range = "A1:B" +QString::number(intRows);
+    QAxObject *allEnvData = worksheet->querySubObject("Range(QString)", Range); //读取范围
+    QVariant allEnvDataQVariant = allEnvData->property("Value");
+    QVariantList allEnvDataList = allEnvDataQVariant.toList();
+    QVector <QString> str;
+    for(int i=0; i< intRows; i++)
+    {
+        QVariantList allEnvDataList_i =  allEnvDataList[i].toList() ;
+        QString data1 = allEnvDataList_i[0].toString(); //第i行第0列的数据
+        str.append("sh"+data1);
+    }
+    workbooks->dynamicCall("Close()");
+    excel.dynamicCall("Quit()");
 
 
-    model = new QStandardItemModel();
     model->setItem(0, 0, new QStandardItem("概念"));
     model->setItem(0, 1, new QStandardItem("股票代码"));
     model->setItem(0, 2, new QStandardItem("股票名称"));
@@ -33,6 +60,7 @@ MainWindow::MainWindow(QWidget *parent) :
     model->setItem(2, 3, new QStandardItem("1-3"));
     QTableView *view = new QTableView;
     view->setModel(model);
+    model->setItem(0, 3, new QStandardItem("1-3"));
 
     //鼠标右键
     view->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -41,7 +69,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QAction *middle = new QAction("居中");
     rightQMenu->addAction(merge);
     rightQMenu->addAction(middle);
-    connect(view,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(clicked_rightMenu(QPoint)));
+//    connect(view,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(clicked_rightMenu(QPoint)));
     connect(merge, &QAction::triggered, this, &MainWindow::clicked_merge);
     connect(middle, &QAction::triggered, this, &MainWindow::clicked_middle);
     //鼠标单击
@@ -49,44 +77,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(view,SIGNAL(clicked(const QModelIndex &)),this,SLOT(getStartItem(const QModelIndex &)));
     connect(view,SIGNAL(pressed(const QModelIndex &)),this,SLOT(clicked_pressed(const QModelIndex &)));
     //线程
-    QVector <QString> str;
-    str.append("sz300000");
-    str.append("sz300001");
-    str.append("sz300002");
-    str.append("sz300003");
-    str.append("sz300004");
-    str.append("sz300005");
-    str.append("sz300006");
-    str.append("sz300007");
-    str.append("sz300008");
-    str.append("sz300009");
-    str.append("sz300010");
-    str.append("sz300011");
-    str.append("sz300012");
-    str.append("sz300013");
-    str.append("sz300014");
-    str.append("sz300015");
-    str.append("sz300016");
-    str.append("sz300017");
-    str.append("sz300018");
-    str.append("sz300019");
-    str.append("sz300020");
-    str.append("sz300021");
-    str.append("sz300022");
-    str.append("sz300023");
-    str.append("sz300024");
-    str.append("sz300025");
-    str.append("sz300026");
-    str.append("sz300027");
-    str.append("sz300028");
-    str.append("sz300029");
-    str.append("sz300452");
-    str.append("sz300471");
-    str.append("sz300228");
     for(int i=0; i<str.count(); i++){
         threadMy *threasStrart = new threadMy(str.at(i));
     }
-    view->show();
+//    view->show();
 }
 
 MainWindow::~MainWindow()

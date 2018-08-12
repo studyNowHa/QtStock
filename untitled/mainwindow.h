@@ -26,6 +26,7 @@ public:
     ~MainWindow();
     QTableView *getTableView();
     QTableView *view;
+
 private:
     Ui::MainWindow *ui;
 //    static QTableView *view;
@@ -35,7 +36,7 @@ private:
     columnRow enteredColumnRow;
     QVector<columnRow> vectorStatr;
     QVector<columnRow> vectorEnd;
-    QStandardItemModel* model;
+
     int pressed_row;
     int pressed_cloumn;
 private slots:

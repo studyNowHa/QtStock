@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets network
+QT       += core gui widgets network axcontainer
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -29,6 +29,8 @@ HEADERS  += mainwindow.h \
     test.h \
     thread.h \
     threadmy.h \
-    structstock.h
+    structstock.h \
+    global.h
 
 FORMS    += mainwindow.ui
+
